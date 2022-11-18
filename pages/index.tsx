@@ -2,26 +2,27 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import React from "react";
-import { useContract, Web3Button } from '@thirdweb-dev/react'
-import { toast } from 'react-toastify'
-
+import { useContract, Web3Button } from "@thirdweb-dev/react";
+import { toast } from "react-toastify";
 
 const Home: NextPage = () => {
   const [tokenSupply, setTokenSupply] = React.useState<any>();
-  const [amount, setAmount] = React.useState<string>("");
+  const [amount, setAmount] = React.useState<number>(0);
   const [pastSales, setPastSales] = React.useState<any>();
 
-  const contract = useContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS, "token-drop").contract;
+  const contract = useContract(
+    process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
+    "token-drop"
+  ).contract;
 
   React.useEffect(() => {
     const getSupply = async () => {
       const supply = await contract?.totalSupply();
       setTokenSupply(supply);
       setPastSales(contract?.sales);
-      console.log(pastSales);
     };
     getSupply();
-  }, [contract]);
+  }, [contract, handleSuccess]);
 
   function handleError(error: any) {
     error.errors.forEach((error: any) => {
@@ -30,8 +31,8 @@ const Home: NextPage = () => {
   }
 
   function handleSuccess() {
-    toast.success(`Congrats, you just purchased ${amount} shit coins 🤣`)
-    setAmount("");
+    toast.success(`Congrats, you just purchased ${amount} shit coins 🤣`);
+    setAmount(0);
   }
 
   return (
@@ -48,9 +49,9 @@ const Home: NextPage = () => {
         </h1>
         {tokenSupply && (
           <h2 className="text-4xl text-white text-leading font-black">
-            Total Supply: <span className="text-green-600">
-            {tokenSupply.displayValue} 
-            </span> {tokenSupply.symbol}
+            Total Supply:{" "}
+            <span className="text-green-600">{tokenSupply.displayValue}</span>{" "}
+            {tokenSupply.symbol}
           </h2>
         )}
         <section className="border-2 lg:w-1/3 border-slate-700 p-3 rounded-lg space-y-3">
@@ -62,15 +63,17 @@ const Home: NextPage = () => {
             onChange={(e: any) => setAmount(e.target.value)}
           />
           <div>
-          <Web3Button
+            <Web3Button
               accentColor="#5204BF"
               colorMode="dark"
-              contractAddress={process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string}
+              contractAddress={
+                process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string
+              }
               action={(contract) => contract.erc20.claim(amount)}
               onSuccess={() => handleSuccess()}
               onError={(err) => handleError(err)}
             >
-              (0.001 ETH) Buy Shit Coins
+              ({`${0.001 * amount} ETH`}) Buy Shit Coins
             </Web3Button>
           </div>
         </section>
@@ -83,7 +86,7 @@ const Home: NextPage = () => {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Developed with {" "}❤️ {" "}by Conceptcodes
+          Developed with ❤️ by Conceptcodes
         </a>
       </footer>
     </div>
