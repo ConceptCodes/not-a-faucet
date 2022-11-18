@@ -1,86 +1,93 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
+import type { NextPage } from "next";
+import Head from "next/head";
+import Image from "next/image";
+import React from "react";
+import { useContract, Web3Button } from '@thirdweb-dev/react'
+import { toast } from 'react-toastify'
+
 
 const Home: NextPage = () => {
+  const [tokenSupply, setTokenSupply] = React.useState<any>();
+  const [amount, setAmount] = React.useState<string>("");
+  const [pastSales, setPastSales] = React.useState<any>();
+
+  const contract = useContract(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS, "token-drop").contract;
+
+  React.useEffect(() => {
+    const getSupply = async () => {
+      const supply = await contract?.totalSupply();
+      setTokenSupply(supply);
+      setPastSales(contract?.sales);
+      console.log(pastSales);
+    };
+    getSupply();
+  }, [contract]);
+
+  function handleError(error: any) {
+    error.errors.forEach((error: any) => {
+      toast.error(error.message);
+    });
+  }
+
+  function handleSuccess() {
+    toast.success(`Congrats, you just purchased ${amount} shit coins 🤣`)
+    setAmount("");
+  }
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
+    <div className="flex min-h-screen bg-slate-900 flex-col items-center justify-center py-2">
       <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
+        <title>Dumb Coin</title>
+        <link rel="icon" href="/logo.png" />
       </Head>
 
-      <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center">
-        <h1 className="text-6xl font-bold">
-          Welcome to{' '}
-          <a className="text-blue-600" href="https://nextjs.org">
-            Next.js!
-          </a>
+      <main className="flex w-full flex-1 space-y-6 flex-col items-center justify-center px-20 text-center">
+        <Image src="/dumb.webp" alt="Dumb Coin" width={200} height={200} />
+        <h1 className="text-8xl text-yellow-400 text-leading font-black">
+          Dumb Coin.
         </h1>
-
-        <p className="mt-3 text-2xl">
-          Get started by editing{' '}
-          <code className="rounded-md bg-gray-100 p-3 font-mono text-lg">
-            pages/index.tsx
-          </code>
-        </p>
-
-        <div className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full">
-          <a
-            href="https://nextjs.org/docs"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Documentation &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Find in-depth information about Next.js features and its API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Learn &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Learn about Next.js in an interactive course with quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Examples &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Discover and deploy boilerplate example Next.js projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Deploy &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+        {tokenSupply && (
+          <h2 className="text-4xl text-white text-leading font-black">
+            Total Supply: <span className="text-green-600">
+            {tokenSupply.displayValue} 
+            </span> {tokenSupply.symbol}
+          </h2>
+        )}
+        <section className="border-2 lg:w-1/3 border-slate-700 p-3 rounded-lg space-y-3">
+          <h1 className="text-white font-bold text-left">Buy</h1>
+          <input
+            className="w-full h-8 bg-slate-600 color-white p-2 rounded-lg"
+            type="number"
+            value={amount}
+            onChange={(e: any) => setAmount(e.target.value)}
+          />
+          <div>
+          <Web3Button
+              accentColor="#5204BF"
+              colorMode="dark"
+              contractAddress={process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string}
+              action={(contract) => contract.erc20.claim(amount)}
+              onSuccess={() => handleSuccess()}
+              onError={(err) => handleError(err)}
+            >
+              (0.001 ETH) Buy Shit Coins
+            </Web3Button>
+          </div>
+        </section>
       </main>
 
-      <footer className="flex h-24 w-full items-center justify-center border-t">
+      <footer className="flex h-24 w-full items-center justify-center">
         <a
-          className="flex items-center justify-center gap-2"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+          className="flex items-center justify-center gap-2 text-slate-600"
+          href="https://blogr.conceptcodes.dev"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
-          <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
+          Developed with {" "}❤️ {" "}by Conceptcodes
         </a>
       </footer>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
